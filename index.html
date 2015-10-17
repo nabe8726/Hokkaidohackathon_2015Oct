@@ -22,6 +22,7 @@ var AREA = [
 	"釧路", "釧路市",
 	"根室", "根室市",
 ];
+var areapos = [];
 
 var marker2 = [];
 
@@ -31,21 +32,52 @@ window.onload = function() {
 	var fit = true;
 	var viewrosen = true;
 	
-	var url = "https://raw.githubusercontent.com/nabe8726/Hokkaidohackathon_2015Oct/master/Hokkaido_fish_guide.csv";
+//	var url = "https://raw.githubusercontent.com/nabe8726/Hokkaidohackathon_2015Oct/master/Hokkaido_fish_guide.csv";
+	var url = "http://sabae.cc/data/hokkaido/fish/Hokkaido_fish_guide.csv";
+	var fish;
 	getJSON(url, function(csv) {
-		dump(csv);
+//		dump(csv);
+		fish = csv;
 	});
+	
+	var ficon = [];
 	
 	for (var i = 1; i <= 12; i++) {
 		var m = create("span");
-		m.textContent = i + "";
+		m.textContent = i + "月";
 		m.month = i;
 		get("month").appendChild(m);
 		m.onclick = function() {
+			var month = this.month;
+//			alert(month);
 			
+			for (var i = 0; i < ficon.length; i++)
+				ficon[i].clear();
+			
+			var jpg2png = function(fn) {
+				//http://sabae.cc/data/hokkaido/fish/img/fis001.png
+				fn = fn.substring(0, fn.length - 3) + "png";
+				return "http://sabae.cc/data/hokkaido/fish/img/" + fn.substring(fn.lastIndexOf('/') + 1);
+			};
+			var dll = 0.5;
+			for (var i = 1; i < fish.length; i++) {
+				var f = fish[i];
+				for (var j = 16; j <= 29; j++) {
+					var ss = f[j].split(" ");
+					var p = areapos[j - 16];
+					for (var k = 0; k < ss.length; k++) {
+						if (ss[k] == month) {
+							var ll = new LatLng(p[0] + Math.random() * dll - dll / 2, p[1] + Math.random() * dll - dll / 2);
+							var icon = new MapIcon(map, ll, jpg2png(f[6]), 64, 64);
+							ficon.push(icon);
+						}
+					}
+				}
+			}
 		};
 	}
 	
+	var icononsen = [];
 	get("onsen").onclick = function() {
 		var url = "https://raw.githubusercontent.com/nabe8726/Hokkaidohackathon_2015Oct/master/151017onsen.csv";
 		getJSON(url, function(csv) {
@@ -58,6 +90,9 @@ window.onload = function() {
 1*/
 //	dump(csv);
 //	return;
+			for (var i = 0; i < icononsen.length; i++)
+				icononsen[i].clear();
+			
 			for (var i = 1; i < csv.length; i++) {
 				var item = csv[i];
 				if (item.length < 4)
@@ -73,6 +108,7 @@ window.onload = function() {
 					var m = this;
 //					map.showInfo(m.pos, link(d.id));
 				};
+				icononsen.push(marker);
 			}
 		});
 	};
@@ -100,8 +136,10 @@ window.onload = function() {
 			var item = data[i];
 			
 			var flg = false;
+			var nn = -1;
 			for (var j = 0; j < AREA.length; j += 2) {
 				if (item.id.startsWith("北海道") && item.id.endsWith(AREA[j + 1])) {
+					nn = j / 2;
 					flg = true;
 					break;
 				}
@@ -110,6 +148,7 @@ window.onload = function() {
 				continue;
 			
 			var pos = new LatLng(item.lat, item.lng);
+			/*
 			var marker = new MapMarker(map, pos);
 			marker.item = item;
 			marker.pos = pos;
@@ -118,6 +157,8 @@ window.onload = function() {
 				var m = this;
 				map.showInfo(m.pos, link(d.id));
 			};
+			*/
+			areapos[nn] = [ parseFloat(item.lat), parseFloat(item.lng) ];
 			bounds.extend(pos);
 		}
 		map.fitBounds(bounds);
@@ -346,6 +387,9 @@ MapIcon.prototype = {
 	setIcon: function(url) {
 		this.marker.setIcon(url);
 	},
+	clear: function() {
+		this.marker.setMap(null);
+	}
 };
 
 // util
@@ -408,12 +452,12 @@ body {
 }
 #main {
 	text-align: center;
-	background: #ddf;
+	background: #fff;
 }
 #map {
 	height: 400px;
 	width: 100%;
-	border: 4px solid #aaf;
+	border: 4px solid #faa;
 	box-sizing: border-box;
 }
 
@@ -422,8 +466,8 @@ button {
 	padding: 6px;
 	width: 100px;
 	box-sizing: border-box;
-	border: 3px solid #338;
-	background-color: #eef;
+	border: 3px solid #fff;
+	background-color: #faa;
 }
 
 #list {
@@ -477,6 +521,7 @@ button {
 <body>
 
 <div id="main">
+<h1>旬なお魚マップ</h1>
 <div id="month"></div>
 <div id="map"></div>
 <button id="onsen">温泉</button>
