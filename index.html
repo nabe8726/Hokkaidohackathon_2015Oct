@@ -31,6 +31,51 @@ window.onload = function() {
 	var fit = true;
 	var viewrosen = true;
 	
+	var url = "https://raw.githubusercontent.com/nabe8726/Hokkaidohackathon_2015Oct/master/Hokkaido_fish_guide.csv";
+	getJSON(url, function(csv) {
+		dump(csv);
+	});
+	
+	for (var i = 1; i <= 12; i++) {
+		var m = create("span");
+		m.textContent = i + "";
+		m.month = i;
+		get("month").appendChild(m);
+		m.onclick = function() {
+			
+		};
+	}
+	
+	get("onsen").onclick = function() {
+		var url = "https://raw.githubusercontent.com/nabe8726/Hokkaidohackathon_2015Oct/master/151017onsen.csv";
+		getJSON(url, function(csv) {
+//			dump(csv);
+/*
+0: 温泉名
+1: ローマ字
+2: 市町村名
+3: 緯度経度
+1*/
+//	dump(csv);
+//	return;
+			for (var i = 1; i < csv.length; i++) {
+				var item = csv[i];
+				if (item.length < 4)
+					break;
+				console.log(item[3] + " "+ item[4]);
+				var pos = new LatLng(parseFloat(item[3]), parseFloat(item[4]));
+
+				var marker = new MapIcon(map, pos, "resources/hot_spring.png", 32, 32);
+				marker.item = item;
+				marker.pos = pos;
+				marker.onclick = function() {
+					var d = this.item;
+					var m = this;
+//					map.showInfo(m.pos, link(d.id));
+				};
+			}
+		});
+	};
 	get("btn").onclick = function() {
 		gps(function(lat, lng) {
 			var pos = new LatLng(lat, lng);
@@ -125,15 +170,6 @@ var getDistance = function(lat1, lng1, lat2, lng2) {
 	var a = Math.sin(dlat / 2) * Math.sin(dlat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dlng / 2) * Math.sin(dlng / 2);
 	return 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) * 6371; // 6371 = R of the Earth in km
 };
-
-var resizeMap = function() {
-	var w = document.documentElement.clientWidth;
-	var h = document.documentElement.clientHeight;
-	var gap = 75;
-	get("map").style.height = (h - gap) + "px";
-};
-window.onresize = resizeMap;
-window.addEventListener("load", resizeMap, false);
 
 // --> map util (google map)
 var makeIconTsutsuji = function(url) {
@@ -311,10 +347,64 @@ MapIcon.prototype = {
 		this.marker.setIcon(url);
 	},
 };
+
+// util
+var getSearchLink = function(s) {
+	return "http://search.yahoo.co.jp/search?tt=c&ei=UTF-8&fr=sfp_as&aq=-1&oq=&p=" + encodeURIComponent(s) + "&meta=vc%3D";
+};
+var jsonp = function(url) {
+	var head = document.getElementsByTagName("head")[0];
+   	var script = document.createElement("script");
+    script.setAttribute("src", url);
+    script.setAttribute("type", "text/javascript");
+//	script.setAttribute("id", 'jsonp');
+	head.appendChild(script);
+};
+var convertCSVtoArray = function(s) {
+	var lines = s.split("\n");
+	var res = [];
+	for (var i = 0; i < lines.length; i++) {
+		var ar = lines[i].split(",");
+		res.push(ar);
+	}
+	return res;
+};
+var getJSON = function(url, callback) {
+	if (url.endsWith(".csv")) {
+		getRawJSON(url, "SJIS", function(csv) {
+			callback(convertCSVtoArray(csv));
+		});
+	} else if (url.endsWith(".xml")) {
+		getXMLJSON(url, callback);
+	} else {
+		alert("not support type : " + url);
+	}
+};
+var getXMLJSON = function(url, callback) {
+	var host = "sabae.cc";
+	var cnv = "xml2json";
+	var base = "http://" + host + "/proxy/ITqT5WkhCf2yn1s9?cnv=" + cnv;
+	var url2 = base + "&cache=no&callback=" + getCallbackMethod(callback) + "&url=" + encodeURI(url);
+	jsonp(url2);
+};
+var getRawJSON = function(url, srcenc, callback) {
+	var host = "sabae.cc";
+//	host = "localhost:8080";
+	var cache = "no";
+	var base = "http://" + host + "/proxy/ITqT5WkhCf2yn1s9?";
+	var url2 = base + "cnv=json&srcenc=" + srcenc + "&cache="  + cache + "&callback=" + getCallbackMethod(callback) + "&url=" + encodeURIComponent(url);
+	jsonp(url2);
+};
+
 </script>
 <style>
 body {
 	margin: 0px;
+}
+#month > span {
+	font-size: 12px;
+	padding: 3px;
+	width: 2.5em;
 }
 #main {
 	text-align: center;
@@ -386,9 +476,14 @@ button {
 </head>
 <body>
 
-<div id="main"><div id="map"></div><button id="btn">現在地</button><button id="all">全体図</button>
+<div id="main">
+<div id="month"></div>
+<div id="map"></div>
+<button id="onsen">温泉</button>
+<button id="btn">現在地</button>
+<button id="all">全体図</button>
 
-<div id="src">データ提供：<a href=http://nlftp.mlit.go.jp/isj/ target=_blank>街区レベル位置参照情報　国土交通省</a><br>
+<div id="src">データ提供：<a href=http://www.pref.hokkaido.lg.jp/ss/jsk/opendata.htm>北海道オープンデータ（試行版）</a>(<a href=http://linkdata.org/work/rdf1s2591i>北海道おさかなデータブック 中山圭太郎氏</a>)、<a href=http://nlftp.mlit.go.jp/isj/ target=_blank>街区レベル位置参照情報　国土交通省</a><br>
 アプリ：福野泰介 CC BY <a href=http://fukuno.jig.jp target=_blank>fukuno.jig.jp</a><br>
 </div>
 
