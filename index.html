@@ -1,0 +1,396 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<title>日本のまちビューワー</title>
+<meta name="viewport" content="target-densitydpi=middle-dpi, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no"/>
+<meta property="og:image" content="http://fukuno.jig.jp/2014/localgovs.jpg">
+<script src="http://fukuno.jig.jp/2014/fukuno.js/fukuno.js"></script>
+<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script>"use strict";
+
+var AREA = [
+	"石狩", "札幌市中央区",
+	"桧山", "江差町",
+	"後志", "倶知安町",
+	"留萌", "留萌市",
+	"空知", "深川市",
+	"上川", "旭川市",
+	"渡島", "函館市",
+	"胆振", "室蘭市",
+	"日高", "浦河町",
+	"宗谷", "稚内市",
+	"網走", "網走市",
+	"十勝", "帯広市",
+	"釧路", "釧路市",
+	"根室", "根室市",
+];
+
+var marker2 = [];
+
+window.onload = function() {
+	var map = new Map("map");
+	var bounds = new LatLngBounds();
+	var fit = true;
+	var viewrosen = true;
+	
+	get("btn").onclick = function() {
+		gps(function(lat, lng) {
+			var pos = new LatLng(lat, lng);
+			map.setCenter(pos);
+			map.setZoom(15);
+			fit = false;
+		});
+	};
+	get("all").onclick = function() {
+		map.fitBounds(bounds);
+	};
+	
+	var link = function(s) {
+		var url = "http://search.yahoo.co.jp/search?p=" + encodeURIComponent(s);
+		return "<a href=" + url + " target=_blank>" + s + "</a>";
+	};
+	jsonp("http://sabae.cc/data/japan/localgovs.js");
+	window.localgovs = function(data) {
+//		dump(data);
+		var n = 0;
+		for (var i = 0; i < data.length; i++) {
+			var item = data[i];
+			
+			var flg = false;
+			for (var j = 0; j < AREA.length; j += 2) {
+				if (item.id.startsWith("北海道") && item.id.endsWith(AREA[j + 1])) {
+					flg = true;
+					break;
+				}
+			}
+			if (!flg)
+				continue;
+			
+			var pos = new LatLng(item.lat, item.lng);
+			var marker = new MapMarker(map, pos);
+			marker.item = item;
+			marker.pos = pos;
+			marker.onclick = function() {
+				var d = this.item;
+				var m = this;
+				map.showInfo(m.pos, link(d.id));
+			};
+			bounds.extend(pos);
+		}
+		map.fitBounds(bounds);
+	};
+};
+var xml2json = function(url, callback) {
+//	var srcenc = "SJIS";
+	var srcenc = "utf-8";
+	var host = "fukuno.jig.jp";
+	var host = "localhost:8080";
+	var host = "sabae.cc";
+	var base = "http://" + host + "/proxy/ITqT5WkhCf2yn1s9?cnv=xml2json&srcenc=" + srcenc;
+	var url2 = base + "&cache=no&callback=" + getCallbackMethod(callback) + "&url=" + encodeURI(url);
+	jsonp(url2);
+};
+//
+var gps = function(callback) {
+	var supportgps = typeof navigator.geolocation != 'undefined';
+	if (supportgps) {
+		var gpsid = navigator.geolocation.watchPosition(
+			function(pos) { // success
+				navigator.geolocation.clearWatch(gpsid);
+				var lat = pos.coords.latitude;
+				var lng = pos.coords.longitude;
+				callback(lat, lng);
+			},
+			function(e) { // error
+			}
+		);
+	}
+};
+var getDistanceList = function(lat, lng, list) { // list have getPosition()
+	var lat = currentpos.lat();
+	var lng = currentpos.lng();
+	var dislist = [];
+	for (var i = 0; i < list.length; i++) {
+		var m = list[i];
+		var p = m.getPosition();
+		var d = getDistance(lat, lng, p.lat(), p.lng());
+		dislist.push({ item: m, distance: d });
+	}
+	dislist.sort(function(a, b) {
+		return a.distance - b.distance;
+	});
+	return dislist;
+};
+var getDistance = function(lat1, lng1, lat2, lng2) {
+	var dlat = (lat2 - lat1) * Math.PI / 180;
+	var dlng = (lng2 - lng1) * Math.PI / 180;
+	var a = Math.sin(dlat / 2) * Math.sin(dlat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dlng / 2) * Math.sin(dlng / 2);
+	return 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) * 6371; // 6371 = R of the Earth in km
+};
+
+var resizeMap = function() {
+	var w = document.documentElement.clientWidth;
+	var h = document.documentElement.clientHeight;
+	var gap = 75;
+	get("map").style.height = (h - gap) + "px";
+};
+window.onresize = resizeMap;
+window.addEventListener("load", resizeMap, false);
+
+// --> map util (google map)
+var makeIconTsutsuji = function(url) {
+	// つつじバス特別
+	return new google.maps.MarkerImage(
+		url,
+		new google.maps.Size(64, 64),
+		new google.maps.Point(0, 0),
+		new google.maps.Point(32, 32)
+	);
+};
+
+var Map = function(id) {
+	this.map = new google.maps.Map(get(id), {
+		center: new google.maps.LatLng(36.208823, 138.251953),	// 日本全体にちょうどいい
+		zoom: 8, // 5だと日本全体, 1で世界地図
+//		disableDoubleClickZoom: true,
+		mapTypeId: google.maps.MapTypeId.ROADMAP,
+//		mapTypeId: google.maps.MapTypeId.HYBRID,
+//		mapTypeId: "mono",
+		mapTypeIds: ['mono', google.maps.MapTypeId.ROADMAP]
+	});
+	this.info = new google.maps.InfoWindow();
+	return;
+	var styleOptions = [ { 'elementType': 'geometry', 'stylers': [ { 'gamma': 0.8 }, { 'saturation': -100 }, { 'visibility': 'simplified' }, { 'lightness': 20 } ] },{ 'elementType': 'labels', 'stylers': [ { 'visibility': 'off' } ] },{ 'featureType': 'poi.park', 'elementType': 'geometry', 'stylers': [ { 'lightness': 30 }, { 'visibility': 'on' } ] },{ 'featureType': 'road.highway', 'elementType': 'geometry', 'stylers': [ { 'visibility': 'simplified' } ] },{ 'featureType': 'landscape', 'elementType': 'geometry', 'stylers': [ { 'visibility': 'off' } ] },{ 'featureType': 'road', 'stylers': [ { 'lightness': 100 } ] },{ 'featureType': 'transit.line', 'elementType': 'geometry', 'stylers': [ { 'visibility': 'on' }, { 'lightness': 30 } ] },{ 'featureType': 'poi.business', 'elementType': 'geometry', 'stylers': [ { 'lightness': -10 }, { 'visibility': 'on' } ] } ];
+	var styledMapOptions = { name: 'モノクロ' }
+	var monoType = new google.maps.StyledMapType(styleOptions, styledMapOptions);
+	this.map.mapTypes.set('mono', monoType);
+	this.map.setMapTypeId('mono');
+};
+Map.prototype = {
+	fitBounds: function(bounds) {
+		this.map.fitBounds(bounds.b);
+	},
+	setZoom: function(zoom) {
+		this.map.setZoom(zoom);
+	},
+	setCenter: function(ll) {
+		this.map.setCenter(ll.p);
+	},
+	getCenter: function() {
+		var p = this.map.getCenter();
+		return new LatLng(p);
+	},
+	panTo: function(ll) {
+		this.map.panTo(ll.p);
+	},
+	showInfo: function(pos, s) {
+		if (pos !== null && s !== null) {
+			this.info.setContent(s);
+			this.info.setPosition(pos.p);
+			this.info.open(this.map);
+		} else {
+			this.info.close();
+		}
+	},
+};
+var LatLng = function(lat, lng) {
+	if (lng != null)
+		this.p = new google.maps.LatLng(lat, lng);
+	else
+		this.p = lat;
+};
+var LatLngBounds = function() {
+	this.b = new google.maps.LatLngBounds();
+};
+LatLngBounds.prototype = {
+	extend: function(ll) {
+		this.b.extend(ll.p);
+	},
+	getCenter: function() {
+		var p = this.b.getCenter();
+		return new LatLng(p);
+	}
+};
+LatLng.prototype = {
+	lat: function() {
+		return this.p.lat();
+	},
+	lng: function() {
+		return this.p.lng();
+	}
+};
+var MapPolyline = function(map, col, alpha) {
+	this.pnts = new google.maps.MVCArray();
+	this.poly = new google.maps.Polyline({
+		map: map.map,
+		path: this.pnts,
+		strokeColor: col !== undefined ? col : "#ff0000",
+		strokeOpacity: alpha,
+		strokeWeight: 6
+	});
+};
+MapPolyline.prototype = {
+	addPoint: function(ll) {
+		this.pnts.push(ll.p);
+		this.poly.setPath(this.pnts);
+	},
+};
+var MapMarker = function(map, pos, colrgb) {
+	var opt = {
+		map: map.map,
+		position: pos.p,
+//		shadow: getIconShadow(),
+//		draggable: true
+	};
+	if (colrgb != null) {
+		opt.icon = "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=" + "S" + "|" + colrgb + "|FFFFFF";
+	}
+	this.marker = new google.maps.Marker(opt);
+	this.marker.parent = this;
+	google.maps.event.addListener(this.marker, "click", function() {
+		if (this.parent.onclick != null) {
+			this.parent.onclick.call(this.parent);
+		}
+	});
+};
+MapMarker.prototype = {
+	setPosition: function(p) {
+		this.marker.setPosition(p.p);
+	},
+	remove: function() {
+		this.marker.setMap(null);
+	},
+};
+var MapCircle = function(map, pos, r, col) {
+	this.marker = new google.maps.Circle({
+		map: map.map,
+		center: pos.p,
+//		fillColor: "#0000ff",
+		fillColor: col !== undefined ? col : "#ff0000",
+		fillOpacity: .5,
+		strokeColor: col !== undefined ? col : "#000000",
+//		strokeOpacity: 0,
+		strokeWeight: 5,
+		radius: r
+	});
+	this.marker.parent = this;
+	google.maps.event.addListener(this.marker, "click", function() {
+		if (this.parent.onclick != null) {
+			this.parent.onclick.call(this.parent);
+		}
+	});
+};
+MapCircle.prototype = {
+	setPosition: function(p) {
+		this.marker.setPosition(p.p);
+	}
+};
+var MapIcon = function(map, pos, iconfn, iw, ih) {
+	var icon = iconfn;
+	if (iw && ih) {
+		icon = new google.maps.MarkerImage(iconfn);
+		icon.scaledSize = new google.maps.Size(iw, ih);
+	}
+	var opt = {
+		map: map.map,
+		position: pos.p,
+		icon: icon
+	};
+	this.map = map;
+	this.marker = new google.maps.Marker(opt);
+	this.marker.parent = this;
+	google.maps.event.addListener(this.marker, "click", function() {
+		if (this.parent.onclick != null) {
+			this.parent.onclick.call(this.parent);
+		}
+	});
+};
+MapIcon.prototype = {
+	setPosition: function(p) {
+		this.marker.setPosition(p.p);
+	},
+	setIcon: function(url) {
+		this.marker.setIcon(url);
+	},
+};
+</script>
+<style>
+body {
+	margin: 0px;
+}
+#main {
+	text-align: center;
+	background: #ddf;
+}
+#map {
+	height: 400px;
+	width: 100%;
+	border: 4px solid #aaf;
+	box-sizing: border-box;
+}
+
+button {
+	margin: 5px;
+	padding: 6px;
+	width: 100px;
+	box-sizing: border-box;
+	border: 3px solid #338;
+	background-color: #eef;
+}
+
+#list {
+	position: relative;
+	padding: 10px 0px;
+	white-space: nowrap;
+	height: 200px;
+	width: 100%;
+	overflow-x: auto;
+}
+.item h3 {
+	font-size: 120%;
+	display: inline-block;
+	padding-bottom: 8px;
+	padding-top: 4px;
+}
+.item {
+	text-align: left;
+	white-space: normal;
+	vertical-align: top;
+	display: inline-block;
+	width: 150px;
+	height: 160px;
+	margin: 8px;
+	border-raidus: 5px;
+	border: 2px solid gray;
+	padding: 8px;
+	font-size: 80%;
+}
+#src {
+	font-size: 50%;
+	text-align: center;
+	margin: 0px;
+	x-position: fixed;
+	x-bottom: 0px;
+	x-right: 4px;
+}
+.timetable {
+	display: inline;
+	text-align: center;
+	border-collapse: collapse;
+	margin-top: 5px;
+}
+.timetable td {
+	border: 1px solid #555;
+	padding: 0px 5px;
+	text-align: center;
+}
+</style>
+</head>
+<body>
+
+<div id="main"><div id="map"></div><button id="btn">現在地</button><button id="all">全体図</button>
+
+<div id="src">データ提供：<a href=http://nlftp.mlit.go.jp/isj/ target=_blank>街区レベル位置参照情報　国土交通省</a><br>
+アプリ：福野泰介 CC BY <a href=http://fukuno.jig.jp target=_blank>fukuno.jig.jp</a><br>
+</div>
+
+</body>
+</html>
