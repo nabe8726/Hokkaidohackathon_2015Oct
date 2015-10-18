@@ -1,7 +1,7 @@
 <!DOCTYPE html><html><head><meta charset="utf-8">
-<title>日本のまちビューワー</title>
+<title>バスで行く！旬なお魚・温泉マップ</title>
 <meta name="viewport" content="target-densitydpi=middle-dpi, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no"/>
-<meta property="og:image" content="http://fukuno.jig.jp/2014/localgovs.jpg">
+<meta property="og:image" content="http://sabae.cc/app/hokkaido/resources/ogp.jpg">
 <script src="http://fukuno.jig.jp/2014/fukuno.js/fukuno.js"></script>
 <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
 <script>"use strict";
@@ -38,6 +38,10 @@ window.onload = function() {
 	getJSON(url, function(csv) {
 //		dump(csv);
 		fish = csv;
+		
+		var d = new Date();
+		var btn = get("m" + (d.getMonth() + 1));
+		btn.onclick.call(btn);
 	});
 	
 	var ficon = [];
@@ -46,9 +50,15 @@ window.onload = function() {
 		var m = create("span");
 		m.textContent = i + "月";
 		m.month = i;
+		m.id = "m" + i;
 		get("month").appendChild(m);
 		m.onclick = function() {
 			var month = this.month;
+			
+			for (var i = 1; i <= 12; i++) {
+				get("m" + i).className = i == month ? "selected" : "";
+			}
+			
 //			alert(month);
 			
 			for (var i = 0; i < ficon.length; i++)
@@ -62,13 +72,17 @@ window.onload = function() {
 			var dll = 0.5;
 			for (var i = 1; i < fish.length; i++) {
 				var f = fish[i];
-				for (var j = 16; j <= 29; j++) {
+				for (var j = 17; j <= 30; j++) {
 					var ss = f[j].split(" ");
-					var p = areapos[j - 16];
+					var p = areapos[j - 17];
 					for (var k = 0; k < ss.length; k++) {
 						if (ss[k] == month) {
 							var ll = new LatLng(p[0] + Math.random() * dll - dll / 2, p[1] + Math.random() * dll - dll / 2);
-							var icon = new MapIcon(map, ll, jpg2png(f[6]), 64, 64);
+							var icon = new MapIcon(map, ll, jpg2png(f[7]), 64, 64);
+							icon.url = f[0];
+							icon.onclick = function() {
+								window.open(this.url);
+							};
 							ficon.push(icon);
 						}
 					}
@@ -79,6 +93,13 @@ window.onload = function() {
 	
 	var icononsen = [];
 	get("onsen").onclick = function() {
+		if (icononsen.length > 0) {
+			for (var i = 0; i < icononsen.length; i++)
+				icononsen[i].clear();
+			icononsen = [];
+			return;
+		}
+		
 		var url = "https://raw.githubusercontent.com/nabe8726/Hokkaidohackathon_2015Oct/master/151017onsen.csv";
 		getJSON(url, function(csv) {
 //			dump(csv);
@@ -90,23 +111,21 @@ window.onload = function() {
 1*/
 //	dump(csv);
 //	return;
-			for (var i = 0; i < icononsen.length; i++)
-				icononsen[i].clear();
 			
 			for (var i = 1; i < csv.length; i++) {
 				var item = csv[i];
 				if (item.length < 4)
 					break;
-				console.log(item[3] + " "+ item[4]);
+	//			console.log(item[3] + " "+ item[4]);
 				var pos = new LatLng(parseFloat(item[3]), parseFloat(item[4]));
 
-				var marker = new MapIcon(map, pos, "resources/hot_spring.png", 32, 32);
+				var marker = new MapIcon(map, pos, "http://sabae.cc/app/hokkaido/resources/hot_spring.png", 32, 32);
 				marker.item = item;
 				marker.pos = pos;
 				marker.onclick = function() {
 					var d = this.item;
 					var m = this;
-//					map.showInfo(m.pos, link(d.id));
+					map.showInfo(m.pos, link(m.item[0] + " 北海道")); // item[1] で英語
 				};
 				icononsen.push(marker);
 			}
@@ -446,8 +465,9 @@ body {
 	margin: 0px;
 }
 #month > span {
-	font-size: 12px;
-	padding: 3px;
+	font-size: 20px;
+	padding: 8px;
+	margin-bottom: 4px;
 	width: 2.5em;
 }
 #main {
@@ -459,6 +479,9 @@ body {
 	width: 100%;
 	border: 4px solid #faa;
 	box-sizing: border-box;
+}
+.selected {
+	background-color: #faa;
 }
 
 button {
@@ -516,20 +539,30 @@ button {
 	padding: 0px 5px;
 	text-align: center;
 }
+.pr {
+	margin: 20px 0px;
+}
 </style>
 </head>
 <body>
 
 <div id="main">
-<h1>旬なお魚マップ</h1>
+<h1>バスで行く！旬なお魚・温泉マップ</h1>
 <div id="month"></div>
 <div id="map"></div>
 <button id="onsen">温泉</button>
 <button id="btn">現在地</button>
 <button id="all">全体図</button>
 
+<div class="pr">
+<a href=http://www.cool-star.jp/>
+<img src=resources/pr-bus.png width=100%><br>
+[PR]北海道の貸切バス クールスター | 北海道旅行の高級リムジンサービス
+</a>
+</div>
+
 <div id="src">データ提供：<a href=http://www.pref.hokkaido.lg.jp/ss/jsk/opendata.htm>北海道オープンデータ（試行版）</a>(<a href=http://linkdata.org/work/rdf1s2591i>北海道おさかなデータブック 中山圭太郎氏</a>)、<a href=http://nlftp.mlit.go.jp/isj/ target=_blank>街区レベル位置参照情報　国土交通省</a><br>
-アプリ：福野泰介 CC BY <a href=http://fukuno.jig.jp target=_blank>fukuno.jig.jp</a><br>
+アプリ：CC BY チームおさかなバス（<a href=https://opendata.doorkeeper.jp/events/30873>北海道オープンデータハッカソン</a>）<br>
 </div>
 
 </body>
