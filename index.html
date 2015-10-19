@@ -1,5 +1,5 @@
 <!DOCTYPE html><html><head><meta charset="utf-8">
-<title>バスで行く！旬なお魚・温泉マップ</title>
+<title>SAKANA Map in Hokkaido / バスで行く！旬なお魚・温泉マップ</title>
 <meta name="viewport" content="target-densitydpi=middle-dpi, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no"/>
 <meta property="og:image" content="http://sabae.cc/app/hokkaido/resources/ogp.jpg">
 <script src="http://fukuno.jig.jp/2014/fukuno.js/fukuno.js"></script>
@@ -42,6 +42,39 @@ window.onload = function() {
 		var d = new Date();
 		var btn = get("m" + (d.getMonth() + 1));
 		btn.onclick.call(btn);
+/*
+0: URL
+1: imi:名称
+2: imi:表記
+3: foods:地方名
+4: foods:科
+5: foods:全長
+6: foods:魚の画像_small
+7: foods:魚の画像
+8: foods:特徴
+9: foods:解説
+10: foods:分布図
+11: foods:分布
+12: foods:漁獲時期図
+13: foods:漁獲時期
+14: foods:漁法
+15: foods:漁協
+16: 魚名
+17: 石狩
+18: 桧山
+19: 後志
+20: 留萌
+21: 空知
+22: 上川
+23: 渡島
+24: 胆振
+25: 日高
+26: 宗谷
+27: 網走
+28: 十勝
+29: 釧路
+30: 根室
+*/
 	});
 	
 	var ficon = [];
@@ -80,8 +113,16 @@ window.onload = function() {
 							var ll = new LatLng(p[0] + Math.random() * dll - dll / 2, p[1] + Math.random() * dll - dll / 2);
 							var icon = new MapIcon(map, ll, jpg2png(f[7]), 64, 64);
 							icon.url = f[0];
+							icon.pos = ll;
+							icon.item = f;
 							icon.onclick = function() {
-								window.open(this.url);
+								//window.open(this.url);
+								var url = this.url;
+								
+								var d = this.item;
+								var m = this;
+								map.showInfo(m.pos, "<a href=" + url + ">" + m.item[1] + " / " + m.item[16] + "</a>"); // item[1] で英語
+								
 							};
 							ficon.push(icon);
 						}
@@ -542,22 +583,26 @@ button {
 .pr {
 	margin: 20px 0px;
 }
+h1 {
+	font-size: 24px;
+	font-weight: bold;
+}
 </style>
 </head>
 <body>
 
 <div id="main">
-<h1>バスで行く！旬なお魚・温泉マップ</h1>
+<h1>SAKANA Map in Hokkaido / バスで行く！旬なお魚・温泉マップ</h1>
 <div id="month"></div>
 <div id="map"></div>
-<button id="onsen">温泉</button>
-<button id="btn">現在地</button>
-<button id="all">全体図</button>
+<button id="onsen">ONSEN / 温泉</button>
+<button id="btn">HERE / 現在地</button>
+<button id="all">ALL 全体図</button>
 
 <div class="pr">
 <a href=http://www.cool-star.jp/>
 <img src=resources/pr-bus.png width=100%><br>
-[PR]北海道の貸切バス クールスター | 北海道旅行の高級リムジンサービス
+[PR]Charter Bus / 北海道の貸切バス クールスター | 北海道旅行の高級リムジンサービス
 </a>
 </div>
 
