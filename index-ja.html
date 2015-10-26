@@ -1,33 +1,10 @@
 <!DOCTYPE html><html><head><meta charset="utf-8">
-<title>SAKANA Map in Hokkaido</title>
+<title>SAKANA Map in Hokkaido / バスで行く！旬なお魚・温泉マップ</title>
 <meta name="viewport" content="target-densitydpi=middle-dpi, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no"/>
 <meta property="og:image" content="http://sabae.cc/app/hokkaido/resources/ogp.jpg">
 <script src="http://fukuno.jig.jp/2014/fukuno.js/fukuno.js"></script>
 <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
-<script>
-var getLanguage = function() {
-	var lang = "ja";
-	try {
-		lang = (navigator.browserLanguage || navigator.language || navigator.userLanguage).substr(0, 2)
-	} catch(e) {
-	}
-	var hash = document.location.hash;
-	var n = hash.indexOf("lang=");
-	if (n > 0) {
-		lang = hash.substring(n + 5, n + 7);
-	}
-	return lang;
-};
-var lang = getLanguage();
-if (lang == "ja") {
-	;//document.location.href = "index-ja.html";
-}
-</script>
 <script>"use strict";
-
-var getTransLink = function(url) {
-	return "http://translate.google.com/translate?&langpair=ja|en&hl=ja&u=" + encodeURIComponent(url);
-};
 
 var AREA = [
 	"石狩", "札幌市中央区",
@@ -102,11 +79,9 @@ window.onload = function() {
 	
 	var ficon = [];
 	
-	var smonth = [ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" ];
-	
 	for (var i = 1; i <= 12; i++) {
 		var m = create("span");
-		m.textContent = smonth[i - 1] + "";
+		m.textContent = i + "月";
 		m.month = i;
 		m.id = "m" + i;
 		get("month").appendChild(m);
@@ -146,7 +121,7 @@ window.onload = function() {
 								
 								var d = this.item;
 								var m = this;
-								map.showInfo(m.pos, "<a href=" + getTransLink(url) + " target=_blank>" + m.item[16] + "(" + m.item[1] + ")</a>"); // item[1] で英語
+								map.showInfo(m.pos, "<a href=" + url + ">" + m.item[1] + " / " + m.item[16] + "</a>"); // item[1] で英語
 								
 							};
 							ficon.push(icon);
@@ -531,8 +506,8 @@ body {
 	margin: 0px;
 }
 #month > span {
-	font-size: 13px;
-	padding: 4px;
+	font-size: 20px;
+	padding: 8px;
 	margin-bottom: 4px;
 	width: 2.5em;
 }
@@ -617,22 +592,22 @@ h1 {
 <body>
 
 <div id="main">
-<h1>SAKANA Map in Hokkaido [<a href=index-ja.html>ja</a>]</h1>
+<h1>SAKANA Map in Hokkaido / バスで行く！旬なお魚・温泉マップ</h1>
 <div id="month"></div>
 <div id="map"></div>
-<button id="onsen">ONSEN</button>
-<button id="btn">HERE</button>
-<button id="all">ALL</button>
+<button id="onsen">ONSEN / 温泉</button>
+<button id="btn">HERE / 現在地</button>
+<button id="all">ALL 全体図</button>
 
 <div class="pr">
 <a href=http://www.cool-star.jp/>
 <img src=resources/pr-bus.png width=100%><br>
-[PR]Charter Bus in Hokkaido
+[PR]Charter Bus / 北海道の貸切バス クールスター | 北海道旅行の高級リムジンサービス
 </a>
 </div>
 
-<div id="src">DATA: <a href=http://www.pref.hokkaido.lg.jp/ss/jsk/opendata.htm>Open Data from pref Hokkaido</a>(<a href=http://linkdata.org/work/rdf1s2591i>Fish Data Book in Hokkaido by Taro Nakayama</a>)、<a href=http://nlftp.mlit.go.jp/isj/ target=_blank>GIS by Kokudo-Kotsusho(JP GOV)</a><br>
-APP: CC BY team Osakana Bus(<a href=https://opendata.doorkeeper.jp/events/30873>Open Data Hackathon in Hokkaido</a>)<br>
+<div id="src">データ提供：<a href=http://www.pref.hokkaido.lg.jp/ss/jsk/opendata.htm>北海道オープンデータ（試行版）</a>(<a href=http://linkdata.org/work/rdf1s2591i>北海道おさかなデータブック 中山圭太郎氏</a>)、<a href=http://nlftp.mlit.go.jp/isj/ target=_blank>街区レベル位置参照情報　国土交通省</a><br>
+アプリ：CC BY チームおさかなバス（<a href=https://opendata.doorkeeper.jp/events/30873>北海道オープンデータハッカソン</a>）<br>
 </div>
 
 </body>
