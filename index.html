@@ -126,7 +126,7 @@ window.onload = function() {
 			var jpg2png = function(fn) {
 				//http://sabae.cc/data/hokkaido/fish/img/fis001.png
 				fn = fn.substring(0, fn.length - 3) + "png";
-				return "http://sabae.cc/data/hokkaido/fish/img/" + fn.substring(fn.lastIndexOf('/') + 1);
+				return "http://sabae.club/data/hokkaido/fish/img/" + fn.substring(fn.lastIndexOf('/') + 1);
 			};
 			var dll = 0.5;
 			for (var i = 1; i < fish.length; i++) {
@@ -186,7 +186,7 @@ window.onload = function() {
 	//			console.log(item[3] + " "+ item[4]);
 				var pos = new LatLng(parseFloat(item[3]), parseFloat(item[4]));
 
-				var marker = new MapIcon(map, pos, "http://sabae.cc/app/hokkaido/resources/hot_spring.png", 32, 32);
+				var marker = new MapIcon(map, pos, "http://sabae.club/app/hokkaido/resources/hot_spring.png", 32, 32);
 				marker.item = item;
 				marker.pos = pos;
 				marker.onclick = function() {
@@ -214,7 +214,7 @@ window.onload = function() {
 		var url = "http://search.yahoo.co.jp/search?p=" + encodeURIComponent(s);
 		return "<a href=" + url + " target=_blank>" + s + "</a>";
 	};
-	jsonp("http://sabae.cc/data/japan/localgovs.js");
+	jsonp("http://sabae.club/data/japan/localgovs.js");
 	window.localgovs = function(data) {
 //		dump(data);
 		var n = 0;
@@ -255,7 +255,7 @@ var xml2json = function(url, callback) {
 	var srcenc = "utf-8";
 	var host = "fukuno.jig.jp";
 	var host = "localhost:8080";
-	var host = "sabae.cc";
+	var host = "sabae.club";
 	var base = "http://" + host + "/proxy/ITqT5WkhCf2yn1s9?cnv=xml2json&srcenc=" + srcenc;
 	var url2 = base + "&cache=no&callback=" + getCallbackMethod(callback) + "&url=" + encodeURI(url);
 	jsonp(url2);
@@ -511,14 +511,14 @@ var getJSON = function(url, callback) {
 	}
 };
 var getXMLJSON = function(url, callback) {
-	var host = "sabae.cc";
+	var host = "sabae.club";
 	var cnv = "xml2json";
 	var base = "http://" + host + "/proxy/ITqT5WkhCf2yn1s9?cnv=" + cnv;
 	var url2 = base + "&cache=no&callback=" + getCallbackMethod(callback) + "&url=" + encodeURI(url);
 	jsonp(url2);
 };
 var getRawJSON = function(url, srcenc, callback) {
-	var host = "sabae.cc";
+	var host = "sabae.club";
 //	host = "localhost:8080";
 	var cache = "no";
 	var base = "http://" + host + "/proxy/ITqT5WkhCf2yn1s9?";
