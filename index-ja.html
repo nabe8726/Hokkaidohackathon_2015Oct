@@ -2,7 +2,7 @@
 <title>SAKANA Map in Hokkaido / バスで行く！旬なお魚・温泉マップ</title>
 <meta name="viewport" content="target-densitydpi=middle-dpi, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no"/>
 <meta property="og:image" content="http://sabae.cc/app/hokkaido/resources/ogp.jpg">
-<script src="http://fukuno.jig.jp/2014/fukuno.js/fukuno.js"></script>
+<script src="http://fukuno.jig.jp/fukuno.js"></script>
 <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
 <script>"use strict";
 
@@ -33,7 +33,7 @@ window.onload = function() {
 	var viewrosen = true;
 	
 //	var url = "https://raw.githubusercontent.com/nabe8726/Hokkaidohackathon_2015Oct/master/Hokkaido_fish_guide.csv";
-	var url = "http://sabae.cc/data/hokkaido/fish/Hokkaido_fish_guide.csv";
+	var url = "http://sabae.club/data/hokkaido/fish/Hokkaido_fish_guide.csv";
 	var fish;
 	getJSON(url, function(csv) {
 //		dump(csv);
@@ -98,9 +98,9 @@ window.onload = function() {
 				ficon[i].clear();
 			
 			var jpg2png = function(fn) {
-				//http://sabae.cc/data/hokkaido/fish/img/fis001.png
+				//http://sabae.club/data/hokkaido/fish/img/fis001.png
 				fn = fn.substring(0, fn.length - 3) + "png";
-				return "http://sabae.cc/data/hokkaido/fish/img/" + fn.substring(fn.lastIndexOf('/') + 1);
+				return "http://sabae.club/data/hokkaido/fish/img/" + fn.substring(fn.lastIndexOf('/') + 1);
 			};
 			var dll = 0.5;
 			for (var i = 1; i < fish.length; i++) {
@@ -160,7 +160,7 @@ window.onload = function() {
 	//			console.log(item[3] + " "+ item[4]);
 				var pos = new LatLng(parseFloat(item[3]), parseFloat(item[4]));
 
-				var marker = new MapIcon(map, pos, "http://sabae.cc/app/hokkaido/resources/hot_spring.png", 32, 32);
+				var marker = new MapIcon(map, pos, "http://sabae.club/app/hokkaido/resources/hot_spring.png", 32, 32);
 				marker.item = item;
 				marker.pos = pos;
 				marker.onclick = function() {
@@ -188,7 +188,7 @@ window.onload = function() {
 		var url = "http://search.yahoo.co.jp/search?p=" + encodeURIComponent(s);
 		return "<a href=" + url + " target=_blank>" + s + "</a>";
 	};
-	jsonp("http://sabae.cc/data/japan/localgovs.js");
+	jsonp("http://sabae.club/data/japan/localgovs.js");
 	window.localgovs = function(data) {
 //		dump(data);
 		var n = 0;
@@ -223,16 +223,6 @@ window.onload = function() {
 		}
 		map.fitBounds(bounds);
 	};
-};
-var xml2json = function(url, callback) {
-//	var srcenc = "SJIS";
-	var srcenc = "utf-8";
-	var host = "fukuno.jig.jp";
-	var host = "localhost:8080";
-	var host = "sabae.cc";
-	var base = "http://" + host + "/proxy/ITqT5WkhCf2yn1s9?cnv=xml2json&srcenc=" + srcenc;
-	var url2 = base + "&cache=no&callback=" + getCallbackMethod(callback) + "&url=" + encodeURI(url);
-	jsonp(url2);
 };
 //
 var gps = function(callback) {
@@ -452,54 +442,6 @@ MapIcon.prototype = {
 	}
 };
 
-// util
-var getSearchLink = function(s) {
-	return "http://search.yahoo.co.jp/search?tt=c&ei=UTF-8&fr=sfp_as&aq=-1&oq=&p=" + encodeURIComponent(s) + "&meta=vc%3D";
-};
-var jsonp = function(url) {
-	var head = document.getElementsByTagName("head")[0];
-   	var script = document.createElement("script");
-    script.setAttribute("src", url);
-    script.setAttribute("type", "text/javascript");
-//	script.setAttribute("id", 'jsonp');
-	head.appendChild(script);
-};
-var convertCSVtoArray = function(s) {
-	var lines = s.split("\n");
-	var res = [];
-	for (var i = 0; i < lines.length; i++) {
-		var ar = lines[i].split(",");
-		res.push(ar);
-	}
-	return res;
-};
-var getJSON = function(url, callback) {
-	if (url.endsWith(".csv")) {
-		getRawJSON(url, "SJIS", function(csv) {
-			callback(convertCSVtoArray(csv));
-		});
-	} else if (url.endsWith(".xml")) {
-		getXMLJSON(url, callback);
-	} else {
-		alert("not support type : " + url);
-	}
-};
-var getXMLJSON = function(url, callback) {
-	var host = "sabae.cc";
-	var cnv = "xml2json";
-	var base = "http://" + host + "/proxy/ITqT5WkhCf2yn1s9?cnv=" + cnv;
-	var url2 = base + "&cache=no&callback=" + getCallbackMethod(callback) + "&url=" + encodeURI(url);
-	jsonp(url2);
-};
-var getRawJSON = function(url, srcenc, callback) {
-	var host = "sabae.cc";
-//	host = "localhost:8080";
-	var cache = "no";
-	var base = "http://" + host + "/proxy/ITqT5WkhCf2yn1s9?";
-	var url2 = base + "cnv=json&srcenc=" + srcenc + "&cache="  + cache + "&callback=" + getCallbackMethod(callback) + "&url=" + encodeURIComponent(url);
-	jsonp(url2);
-};
-
 </script>
 <style>
 body {
@@ -592,7 +534,7 @@ h1 {
 <body>
 
 <div id="main">
-<h1>SAKANA Map in Hokkaido / バスで行く！旬なお魚・温泉マップ</h1>
+<h1>SAKANA Map in Hokkaido / バスで行く！旬なお魚・温泉マップ [<a href=index.html>en</a>]</h1>
 <div id="month"></div>
 <div id="map"></div>
 <button id="onsen">ONSEN / 温泉</button>
